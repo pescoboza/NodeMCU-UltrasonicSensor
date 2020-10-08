@@ -8,8 +8,23 @@
 #define PIN_SENSOR_ECHO D1
 #define PIN_LED D5
 
-unsigned long duration{0U};
-unsigned distance{0U};
+#define DISTANCE_TO_TURN_LED 200
+#define DELAY 200
+
+unsigned calcDist(){
+    // Make sure trigger pin is low
+    digitalWrite(PIN_SENSOR_TRIG, LOW);
+    delayMicroseconds(2);
+
+    // Send 10 ms sensor trigger
+    digitalWrite(PIN_SENSOR_TRIG, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(PIN_SENSOR_TRIG, LOW);
+
+    // Measure the duration of the pulse sent by echo
+    unsigned long duration{pulseIn(PIN_SENSOR_ECHO, HIGH)};
+    return duration * 0.1715;
+}
 
 void setup() {
     pinMode(PIN_SENSOR_TRIG, OUTPUT);
@@ -21,23 +36,9 @@ void setup() {
 }
 
 void loop() {
-    // Make sure trigger pin is low
-    digitalWrite(PIN_SENSOR_TRIG, LOW);
-    delayMicroseconds(2);
-
-    // Send 10 ms sensor trigger
-    digitalWrite(PIN_SENSOR_TRIG, HIGH);
-    delayMicroseconds(10);
-    digitalWrite(PIN_SENSOR_TRIG, LOW);
-
-    // Measure the duration of the pulse sent by echo
-    duration = pulseIn(PIN_SENSOR_ECHO, HIGH);
-    distance = duration * 0.1715;
-
-    // Output the distance
+    unsigned dist{calcDist()};
+    digitalWrite(PIN_LED, dist < DISTANCE_TO_TURN_LED ? HIGH : LOW);
     Serial.print("Distance: ");
-    Serial.println(distance);
-
-    // Delay the reading
-    delay(200);
+    Serial.println(dist);
+    delay(DELAY);
 }
